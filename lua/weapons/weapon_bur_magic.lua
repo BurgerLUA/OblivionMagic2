@@ -1,7 +1,7 @@
-SWEP.PrintName 				= "GMod Magic"
+SWEP.PrintName 				= "Oblivion Magic"
 SWEP.Author 				= "Burger" 
 SWEP.Contact 				= "" 
-SWEP.Category 				= "Burger's Weapons"
+SWEP.Category 				= "TES: Oblivion"
 SWEP.Instructions 			= ""
 SWEP.Purpose 				= ""
 
