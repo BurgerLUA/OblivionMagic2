@@ -15,7 +15,7 @@ SWEP.UseHands				= false
 SWEP.Spawnable 				= true 
 SWEP.AdminSpawnable 		= true                   			
 
-SWEP.DrawCrosshair 			= rrue                          		
+SWEP.DrawCrosshair 			= false                        		
 SWEP.DrawAmmo 				= true                                
                                 	
 SWEP.SlotPos 				= 0                                    	
@@ -49,7 +49,7 @@ if CLIENT then
 
 	language.Add("HelicopterGun_ammo","Mana")
 
-	killicon.Add("ent_bur_magic_base", "vgui/hand", Color(255,255,255,255) )
+	killicon.Add("ent_bur_magic_base", "ob_icons/killicon", Color(255,255,255,255) )
 
 	surface.CreateFont( "Oblivion", {
 	font = "oblivion-font",
@@ -685,6 +685,7 @@ function SWEP:EmitEffects()
 	
 	self.SoundRand = math.Rand(-5,5)
 	self:EmitSound(self.CastSound, 500, 100 + self.SoundRand )
+	
 end
 
 function SWEP:SecondaryAttack()

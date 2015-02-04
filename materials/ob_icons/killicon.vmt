@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "ob_icons/killicon"
+	"$translucent" "1"
+	"$ignorez" "1"
+	
+}
