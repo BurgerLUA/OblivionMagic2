@@ -37,6 +37,7 @@ SWEP.WeaponSlot 			= 1
 
 SWEP.Skill = 50
 
+SWEP.NextChangeTime = 0
 
 if CLIENT then
 
