@@ -104,19 +104,19 @@ function ENT:PhysicsCollide(data, physobj)
 		
 		if self.DamageType == "fire" then
 			self:EmitSound("fx/spl/spl_fireball_hit.wav")
-			ApplyDamage(self,data.HitEntity)
+			self:ApplyDamage(data.HitEntity)
 		elseif self.DamageType == "frost" then
 			self:EmitSound("fx/spl/spl_frost_hit.wav")
-			ApplyDamage(self,data.HitEntity)
+			self:ApplyDamage(data.HitEntity)
 		elseif self.DamageType == "shock" then
 			self:EmitSound("fx/spl/spl_shock_hit.wav")
-			ApplyDamage(self,data.HitEntity)
+			self:ApplyDamage(data.HitEntity)
 		elseif self.DamageType == "unlock" then
 			self:EmitSound("fx/spl/spl_alteration_hit.wav")
-			Unlock(data.HitEntity)
+			self:Unlock(data.HitEntity)
 		else
 			self:EmitSound("fx/spl/spl_destruction_hit.wav")
-			ApplyDamage(self,data.HitEntity)
+			self:ApplyDamage(data.HitEntity)
 		end
 
 		if self.ExplosionEffect == true then
