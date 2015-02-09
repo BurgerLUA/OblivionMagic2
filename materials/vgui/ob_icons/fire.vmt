@@ -1,6 +1,6 @@
 "UnlitGeneric"
 {
-	"$basetexture"	"vgui/entities/OblivionMagicIcon"
+	"$basetexture" "vgui/ob_icons/fire"
 	"$translucent" "1"
 	"$ignorez" "1"
 	

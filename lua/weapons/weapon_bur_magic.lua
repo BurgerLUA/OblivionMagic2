@@ -33,23 +33,14 @@ SWEP.Secondary.Ammo			= "none"
 
 SWEP.CanSwitch 				= true
 SWEP.WeaponSlot 			= 1
-SWEP.DamageType 			= "fire"
-SWEP.Damage 				= 0
-SWEP.Duration 				= 3
-SWEP.Radius 				= 0
-SWEP.VelMul 				= 0
-SWEP.Text 					= "yeah"
-SWEP.RegenTime 				= 0
-SWEP.NextChangeTime 		= 0
-SWEP.Cost 					= 25
-SWEP.Method 				= "target"
+
+
+SWEP.Skill = 50
 
 
 if CLIENT then
 
 	language.Add("HelicopterGun_ammo","Mana")
-
-	killicon.Add("ent_bur_magic_base", "ob_icons/killicon", Color(255,255,255,255) )
 
 	surface.CreateFont( "Oblivion", {
 	font = "oblivion-font",
@@ -70,11 +61,14 @@ if CLIENT then
 	
 end
 
+function SWEP:Initialize()
+
+end
+
 
 function SWEP:Deploy()
 
 	self:UpdateSpell()
-	self:SetUpSpells()
 
 	return true
 	
@@ -90,31 +84,30 @@ function SWEP:PrimaryAttack()
 	
 	self:EmitEffects()
 	
-	if self.Cost <= self:Clip1() then
+	local ManaCost = ( self.SpellSlot[self.WeaponSlot].BaseCost / 10) * (self.SpellSlot[self.WeaponSlot].Damage ^ 1.28) * ( self.SpellSlot[self.WeaponSlot].Duration ) * (self.SpellSlot[self.WeaponSlot].Radius * 0.15) * ( 1.4 - (0.012 * self.Skill) )
+	
+	
+	if ManaCost <= self:Clip1() then
 	
 		self.RegenTime = CurTime() + 2.25
 		self.NextChangeTime = CurTime() + 1.05
 		
 		timer.Simple(1, function()
-		
-			--self:UpdateSpell()
 			
 			if SERVER then
-			
-				self.Weapon:TakePrimaryAmmo(self.Cost)
+
+				self.Weapon:TakePrimaryAmmo(ManaCost)
 				self.CastWhen = CurTime()
 				
-				if self.Method == "target" then
+				if self.SpellSlot[self.WeaponSlot].Method == "target" then
 					self:SpellTarget()
-				elseif self.Method == "touch" then
+				elseif self.SpellSlot[self.WeaponSlot].Method == "touch" then
 					self:SpellTouch()
-				elseif self.Method == "self" then
+				elseif self.SpellSlot[self.WeaponSlot].Method == "self" then
 					self:SpellSelf()
 				end
 				
 			end	
-			
-			
 			
 		end)
 		
@@ -126,12 +119,10 @@ function SWEP:Think()
 	self:RegenThink()
 	self:CheckInputs()
 	self:UpdateSpell()
-	self:SetUpSpells()
 	
 	self:HealThink()
 	self:ShieldThink()
 	self:ConjureThink()
-	
 
 end
 
@@ -232,12 +223,9 @@ if SERVER then
 
 end
 
-
-
-
-
-
-
+local Wheel = Material("vgui/ob_wheel/wheel")
+local WheelBackground = Material("vgui/ob_wheel/background")
+local Selector = Material("vgui/ob_wheel/selector")
 
 function SWEP:DrawHUD()
 	local BaseX = ScrW()*0.25
@@ -246,7 +234,7 @@ function SWEP:DrawHUD()
 	local ConVert = math.pi/180
 	local Size = 64
 	--local Icon = self:GetNWString("damagetype","nil")
-	local Icon = self.DamageType
+	local Icon = self.SpellSlot[self.WeaponSlot].DamageType
 	local HelpText = self.Text or "ass"
 	local HelpText2 = self.Text2 or "titties"
 	--local HelpText = self:GetNWString("helptext","gg noob")
@@ -261,15 +249,12 @@ function SWEP:DrawHUD()
 	if HelpText == nil then return end
 	if HelpText2 == nil then return end
 	
-	surface.SetMaterial( Material("vgui/crosshairs/crosshair3") )
+	surface.SetMaterial( Material("vgui/ob_crosshair/crosshair") )
 	surface.SetDrawColor(255,200,helper,1)
-	surface.DrawTexturedRectRotated(ScrW()/2,ScrH()/2,64,64,0)
+	surface.DrawTexturedRectRotated(ScrW()/2,ScrH()/2,32 + 8,32 + 8,0)
 	
-	surface.SetMaterial( Material("vgui/crosshairs/crosshair6") )
-	surface.SetDrawColor(255,200,helper,1)
-	surface.DrawTexturedRectRotated(ScrW()/2,ScrH()/2,64,64,0)
 
-	surface.SetMaterial( Material("ob_icons/"..Icon..".png") )
+	surface.SetMaterial( Material("vgui/ob_icons/"..Icon) )
 	surface.SetDrawColor(255,255,255,255)
 	surface.DrawTexturedRectRotated(BaseX,BaseY,Size,Size,0)
 	
@@ -283,24 +268,69 @@ function SWEP:DrawHUD()
 	surface.SetTextPos( BaseX + Size/2 + 5, BaseY ) 
 	surface.DrawText( HelpText2 )
 	
+	if LocalPlayer():KeyDown(IN_ATTACK2) then
+	
+		surface.SetDrawColor( Color(255,255,255,255) )
+		surface.SetMaterial( WheelBackground )
+		surface.DrawTexturedRectRotated( ScrW()*0.25 ,  ScrH()*0.5 , 512 , 512, 0  )
+		
+
+		
+		for i=1, 8 do
+			
+			local StoredIcon = self.SpellSlot[i].DamageType
+			
+			local Edit = math.rad( ( (i+3) / 8) * 360  )
+			
+			
+			XOffset = -math.sin(Edit)*100 - 1
+			YOffset = math.cos(Edit)*100
+			
+			
+			
+			surface.SetDrawColor( Color(255,255,255,255) )
+			surface.SetMaterial( Material("vgui/ob_icons/"..StoredIcon) )
+			surface.DrawTexturedRectRotated( ScrW()*0.25 + XOffset ,  ScrH()*0.5 + YOffset , 64 , 64, 0  )
+		
+		
+		end
+		
+		surface.SetDrawColor( Color(255,255,255,255) )
+		surface.SetMaterial( Wheel )
+		surface.DrawTexturedRectRotated( ScrW()*0.25 ,  ScrH()*0.5 , 512 , 512, 0  )
+		
+		
+		surface.SetDrawColor( Color(255,255,255,255) )
+		surface.SetMaterial( Selector )
+		surface.DrawTexturedRectRotated( ScrW()*0.25 ,  ScrH()*0.5 , 512 , 512, 90 -(360/8) * self.WeaponSlot  )
+	
+	
+	end
+	
+	
+	
 end
 
 function SWEP:UpdateSpell()
 
 	if CLIENT then
 	
-		self.Text = self.DamageType .. " " .. self.Damage .. "pts "
+		local ManaCost = ( self.SpellSlot[self.WeaponSlot].BaseCost / 10) * (self.SpellSlot[self.WeaponSlot].Damage ^ 1.28) * ( self.SpellSlot[self.WeaponSlot].Duration ) * (self.SpellSlot[self.WeaponSlot].Radius * 0.15) * ( 1.4 - (0.012 * self.Skill) )						
+	
+	
+	
+		self.Text = self.SpellSlot[self.WeaponSlot].DamageType .. " " .. self.SpellSlot[self.WeaponSlot].Damage .. "pts "
 			
-		if self.Radius >= 2 then
-			self.Text = self.Text .. "in " .. self.Radius .. "ft "
+		if self.SpellSlot[self.WeaponSlot].Radius >= 2 then
+			self.Text = self.Text .. "in " .. self.SpellSlot[self.WeaponSlot].Radius .. "ft "
 		end
 			
-		if self.Duration >= 2 then
-			self.Text = self.Text .. "for " .. self.Duration .. "sec "
+		if self.SpellSlot[self.WeaponSlot].Duration >= 2 then
+			self.Text = self.Text .. "for " .. self.SpellSlot[self.WeaponSlot].Duration .. "sec "
 		end
 			
-		self.Text = self.Text .. "on " .. self.Method
-		self.Text2 = self.Cost .. " mana"
+		self.Text = self.Text .. "on " .. self.SpellSlot[self.WeaponSlot].Method
+		self.Text2 = math.ceil(ManaCost) .. " mana"
 		
 	end
 	
@@ -309,37 +339,54 @@ end
 function SWEP:SpellTarget()
 
 	if SERVER then
-		local ent = ents.Create ("ent_bur_magic_base");	
+	
+		local MagicType
+		
+		if self.SpellSlot[self.WeaponSlot].DamageType == "fire" then
+			MagicType = "fire"
+		elseif self.SpellSlot[self.WeaponSlot].DamageType == "frost" then
+			MagicType = "frost"
+		elseif self.SpellSlot[self.WeaponSlot].DamageType == "shock" then
+			MagicType = "shock"
+		elseif self.SpellSlot[self.WeaponSlot].DamageType == "pure" then
+			MagicType = "pure"
+		else
+			MagicType = "base"
+		end
+	
+	
+		local ent = ents.Create ("ent_bur_magic_" .. MagicType);	
+		
 			ent:SetPos(self.Owner:GetShootPos() - Vector(0,0,5))
 			ent:SetAngles(self.Owner:EyeAngles())
 			ent:SetOwner(self.Owner)	
-			ent.Cost = self.Cost
-			ent.Method = self.Method
-			ent.DamageType = self.DamageType
-			ent.Damage = self.Damage
-			ent.Duration = self.Duration
-			ent.Radius = self.Radius
-			ent.CollisionRadius = self.CollisionRadius
-			ent.VelMul = self.VelMul
-			ent.LoopSound = self.LoopSound
-			ent.RColor= self.RColor
-			ent.GColor = self.GColor
-			ent.BColor = self.BColor
-			ent.AColor = self.AColor
-			ent.TrailLength = self.TrailLength
-			ent.TrailWidthStart = self.TrailWidthStart
-			ent.TrailWidthEnd = self.TrailWidthEnd
-			ent.TrailTexture = self.TrailTexture
-			ent.Effect = self.Effect
-			ent.TravelDamage = self.TravelDamage
-			ent.FranticEffect = self.FranticEffect
-			ent.ExplosionEffect = self.ExplosionEffect						
+			ent.Cost = self.SpellSlot[self.WeaponSlot].Cost
+			ent.Method = self.SpellSlot[self.WeaponSlot].Method
+			ent.DamageType = self.SpellSlot[self.WeaponSlot].DamageType
+			ent.Damage = self.SpellSlot[self.WeaponSlot].Damage
+			ent.Duration = self.SpellSlot[self.WeaponSlot].Duration
+			ent.Radius = self.SpellSlot[self.WeaponSlot].Radius * 16
+			ent.CollisionRadius = self.SpellSlot[self.WeaponSlot].CollisionRadius
+			ent.VelMul = self.SpellSlot[self.WeaponSlot].VelMul
+			ent.LoopSound = self.SpellSlot[self.WeaponSlot].LoopSound
+			ent.RColor = self.SpellSlot[self.WeaponSlot].RColor
+			ent.GColor = self.SpellSlot[self.WeaponSlot].GColor
+			ent.BColor = self.SpellSlot[self.WeaponSlot].BColor
+			ent.AColor = self.SpellSlot[self.WeaponSlot].AColor
+			ent.TrailLength = self.SpellSlot[self.WeaponSlot].TrailLength
+			ent.TrailWidthStart = self.SpellSlot[self.WeaponSlot].TrailWidthStart
+			ent.TrailWidthEnd = self.SpellSlot[self.WeaponSlot].TrailWidthEnd
+			ent.TrailTexture = self.SpellSlot[self.WeaponSlot].TrailTexture
+			ent.Effect = self.SpellSlot[self.WeaponSlot].Effect
+			ent.TravelDamage = self.SpellSlot[self.WeaponSlot].TravelDamage
+			ent.FranticEffect = self.SpellSlot[self.WeaponSlot].FranticEffect
+			ent.ExplosionEffect = self.SpellSlot[self.WeaponSlot].ExplosionEffect						
 		ent:Spawn()
 
 		local phys = ent:GetPhysicsObject()
 		
 		if IsValid(phys) then
-			phys:SetVelocity((self.Owner:EyeAngles():Forward() * 800 * self.VelMul))
+			phys:SetVelocity((self.Owner:EyeAngles():Forward() * 800 * self.SpellSlot[self.WeaponSlot].VelMul))
 			phys:AddAngleVelocity(Vector(20000,20000,20000))
 		end
 		
@@ -350,11 +397,11 @@ end
 
 function SWEP:SpellSelf()
 
-	if self.DamageType == "heal" then
+	if self.SpellSlot[self.WeaponSlot].DamageType == "heal" then
 		self:SpellHeal()
-	elseif self.DamageType == "armor" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "armor" then
 		self:SpellShield()
-	elseif self.DamageType == "conjure" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "conjure" then
 		self:SpellConjure()
 	end
 	
@@ -373,8 +420,8 @@ SWEP.MinionDuration = 0
 
 function SWEP:SpellHeal()
 
-	self.HealValue = self.Damage
-	self.HealDuration = self.Duration + CurTime()
+	self.HealValue = self.SpellSlot[self.WeaponSlot].Damage
+	self.HealDuration = self.SpellSlot[self.WeaponSlot].Duration + CurTime()
 	
 end
 
@@ -408,8 +455,8 @@ end
 
 function SWEP:SpellConjure()
 
-	self.MinionHealth = self.Damage
-	self.MinionDuration = self.Duration + CurTime()
+	self.MinionHealth = self.SpellSlot[self.WeaponSlot].Damage
+	self.MinionDuration = self.SpellSlot[self.WeaponSlot].Duration + CurTime()
 	
 	
 	for k,v in pairs(ents.FindByClass("npc_fastzombie")) do
@@ -450,8 +497,8 @@ end
 
 function SWEP:SpellShield()
 	
-	self.ShieldValue = self.Damage
-	self.ShieldDuration = CurTime() + self.Duration
+	self.ShieldValue = self.SpellSlot[self.WeaponSlot].Damage
+	self.ShieldDuration = CurTime() + self.SpellSlot[self.WeaponSlot].Duration
 	
 end
 
@@ -478,208 +525,29 @@ function SWEP:ShieldThink()
 
 end
 
-function SWEP:SetUpSpells()
-
-	if self.WeaponSlot == 1 then -- W Top Offensive
-		self.Cost = 14
-		self.Method = "target"
-		self.DamageType = "fire"
-		self.Damage = 8
-		self.Duration = 5
-		self.Radius = 10
-		self.CollisionRadius = 2
-		self.VelMul = 0.9
-		self.LoopSound = "fx/spl/spl_fireball_travel_lp.wav"
-		self.RColor = 255
-		self.GColor = 200
-		self.BColor = 0
-		self.AColor = 255
-		self.TrailLength = 0.25
-		self.TrailWidthStart = 50
-		self.TrailWidthEnd = 1
-		self.TrailTexture = "trails/laser.vmt"
-		self.Effect = "sentry_rocket_fire"
-		self.TravelDamage = false
-		self.FranticEffect = false
-		self.ExplosionEffect = true
-	elseif self.WeaponSlot == 2 then -- WD Top Right Offensive
-		self.Cost = 5
-		self.Method = "target"
-		self.DamageType = "frost"
-		self.Damage = 5
-		self.Duration = 5
-		self.Radius = 25
-		self.CollisionRadius = 5
-		self.VelMul = 0.5
-		self.LoopSound = "fx/spl/spl_frost_travel_lp.wav"
-		self.RColor = 0
-		self.GColor = 255
-		self.BColor = 255
-		self.AColor = 255
-		self.TrailLength = 0.5
-		self.TrailWidthStart = 100
-		self.TrailWidthEnd = 0
-		self.TrailTexture = "trails/laser.vmt"
-		self.Effect = "critical_rocket_blue"
-		self.TravelDamage = true
-		self.FranticEffect = false
-		self.ExplosionEffect = false
-	elseif self.WeaponSlot == 3 then -- D Right Blink
-		self.Cost = 60
-		self.Method = "target"
-		self.DamageType = "unlock"
-		self.Damage = 100
-		self.Duration = 1
-		self.Radius = 0
-		self.CollisionRadius = 1
-		self.VelMul = 1
-		self.LoopSound = "fx/spl/spl_alteration_travel_lp.wav"
-		self.RColor = 255
-		self.GColor = 255
-		self.BColor = 0
-		self.AColor = 255
-		self.TrailLength = 0.1
-		self.TrailWidthStart = 10
-		self.TrailWidthEnd = 1
-		self.TrailTexture = "trails/laser.vmt"
-		self.Effect = "community_sparkle"
-		self.TravelDamage = false
-		self.FranticEffect = false
-		self.ExplosionEffect = true
-	elseif self.WeaponSlot == 4 then -- SD Bottom Right Defensive
-		self.Cost = 17
-		self.Method = "self"
-		self.DamageType = "conjure"
-		self.Damage = 100
-		self.Duration = 30
-		self.Radius = 0
-		self.CollisionRadius = nil
-		self.VelMul = nil
-		self.LoopSound = nil
-		self.RColor = nil
-		self.GColor = nil
-		self.BColor = nil
-		self.AColor = nil
-		self.TrailLength = nil
-		self.TrailWidthStart = nil
-		self.TrailWidthEnd = nil
-		self.TrailTexture = nil
-		self.Effect = nil
-		self.TravelDamage = nil
-		self.FranticEffect = nil
-		self.ExplosionEffect = nil
-	elseif self.WeaponSlot == 5 then -- S Bottom Heal
-		self.Cost = 20
-		self.Method = "self"
-		self.DamageType = "heal"
-		self.Damage = 2
-		self.Duration = 5
-		self.Radius = 0
-		self.CollisionRadius = nil
-		self.VelMul = nil
-		self.LoopSound = nil
-		self.RColor = nil
-		self.GColor = nil
-		self.BColor = nil
-		self.AColor = nil
-		self.TrailLength = nil
-		self.TrailWidthStart = nil
-		self.TrailWidthEnd = nil
-		self.TrailTexture = nil
-		self.Effect = nil
-		self.TravelDamage = nil
-		self.FranticEffect = nil
-		self.ExplosionEffect = nil
-	elseif self.WeaponSlot == 6 then -- SA Bottom Left Defensive
-		self.Cost = 50
-		self.Method = "self"
-		self.DamageType = "armor"
-		self.Damage = 100
-		self.Duration = 15
-		self.Radius = 0
-		self.CollisionRadius = nil
-		self.VelMul = nil
-		self.LoopSound = nil
-		self.RColor = nil
-		self.GColor = nil
-		self.BColor = nil
-		self.AColor = nil
-		self.TrailLength = nil
-		self.TrailWidthStart = nil
-		self.TrailWidthEnd = nil
-		self.TrailTexture = nil
-		self.Effect = nil
-		self.TravelDamage = nil
-		self.FranticEffect = nil
-		self.ExplosionEffect = nil
-	elseif self.WeaponSlot == 7 then -- A Left Dash
-		self.Cost = 80
-		self.Method = "target"
-		self.DamageType = "pure"
-		self.Damage = 100
-		self.Duration = 1
-		self.Radius = 1
-		self.CollisionRadius = 5
-		self.VelMul = 0.25
-		self.LoopSound = "fx/spl/spl_destruction_travel_lp.wav"
-		self.RColor = 255
-		self.GColor = 255
-		self.BColor = 255
-		self.AColor = 255
-		self.TrailLength = 0.5
-		self.TrailWidthStart = 32
-		self.TrailWidthEnd = 1
-		self.TrailTexture = "trails/laser.vmt"
-		self.Effect = "critical_rocket_red"
-		self.TravelDamage = false
-		self.FranticEffect = false
-		self.ExplosionEffect = true
-	elseif self.WeaponSlot == 8 then -- WA Top Left Offensive
-		self.Cost = 15
-		self.Method = "target"
-		self.DamageType = "shock"
-		self.Damage = 50
-		self.Duration = 1
-		self.Radius = 1
-		self.CollisionRadius = 1
-		self.VelMul = 2
-		self.LoopSound = "fx/spl/spl_shock_travel_lp.wav"
-		self.RColor = 255
-		self.GColor = 255
-		self.BColor = 255
-		self.AColor = 255
-		self.TrailLength = 1
-		self.TrailWidthStart = 5
-		self.TrailWidthEnd = 5
-		self.TrailTexture = "trails/electric.vmt"
-		self.Effect = "critical_rocket_blue"
-		self.TravelDamage = false
-		self.FranticEffect = true
-		self.ExplosionEffect = true
-	end
-end
-
 function SWEP:EmitEffects()
 
-	if self.Cost >= self.Weapon:Clip1() then
+	local ManaCost = ( self.SpellSlot[self.WeaponSlot].BaseCost / 10) * (self.SpellSlot[self.WeaponSlot].Damage ^ 1.28) * ( self.SpellSlot[self.WeaponSlot].Duration ) * (self.SpellSlot[self.WeaponSlot].Radius * 0.15) * ( 1.4 - (0.012 * self.Skill) )			
+
+	if ManaCost >= self.Weapon:Clip1() then
 		self:EmitSound("fx/spl/fail/spl_destruction_fail.wav",500,100)
 	return end
-	
-	if self.DamageType == "fire" then
+
+	if self.SpellSlot[self.WeaponSlot].DamageType == "fire" then
 		self.CastSound = "fx/spl/spl_fireball_cast.wav"
-	elseif self.DamageType == "frost" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "frost" then
 		self.CastSound = "fx/spl/spl_frost_cast.wav"
-	elseif self.DamageType == "shock" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "shock" then
 		self.CastSound = "fx/spl/spl_shock_cast.wav"
-	elseif self.DamageType == "heal" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "heal" then
 		self.CastSound = "fx/spl/spl_restoration_cast.wav"
-	elseif self.DamageType == "pure" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "pure" then
 		self.CastSound = "fx/spl/spl_destruction_cast.wav"
-	elseif self.DamageType == "unlock" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "unlock" then
 		self.CastSound = "fx/spl/spl_alteration_cast.wav"
-	elseif self.DamageType == "conjure" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "conjure" then
 		self.CastSound = "fx/spl/spl_conjuration_cast.wav"
-	elseif self.DamageType == "armor" then
+	elseif self.SpellSlot[self.WeaponSlot].DamageType == "armor" then
 		self.CastSound = "fx/spl/spl_alteration_cast.wav"
 	else end
 	
@@ -695,6 +563,207 @@ end
 function SWEP:Reload()
 
 end
+
+	print("Setting up Spells...")
+
+	SWEP.SpellSlot = {}
+	
+	SWEP.SpellSlot[1] = {}
+	SWEP.SpellSlot[2] = {}
+	SWEP.SpellSlot[3] = {}
+	SWEP.SpellSlot[4] = {}
+	SWEP.SpellSlot[5] = {}
+	SWEP.SpellSlot[6] = {}
+	SWEP.SpellSlot[7] = {}
+	SWEP.SpellSlot[8] = {}
+
+	-- W Top Offensive
+
+	SWEP.SpellSlot[1].BaseCost = 7.5
+	SWEP.SpellSlot[1].Method = "target"
+	SWEP.SpellSlot[1].DamageType = "fire"
+	SWEP.SpellSlot[1].Damage = 25
+	SWEP.SpellSlot[1].Duration = 1
+	SWEP.SpellSlot[1].Radius = 10
+	SWEP.SpellSlot[1].CollisionRadius = 2
+	SWEP.SpellSlot[1].VelMul = 0.9
+	SWEP.SpellSlot[1].LoopSound = "fx/spl/spl_fireball_travel_lp.wav"
+	SWEP.SpellSlot[1].RColor = 255
+	SWEP.SpellSlot[1].GColor = 200
+	SWEP.SpellSlot[1].BColor = 0
+	SWEP.SpellSlot[1].AColor = 255
+	SWEP.SpellSlot[1].TrailLength = 0.25
+	SWEP.SpellSlot[1].TrailWidthStart = 50
+	SWEP.SpellSlot[1].TrailWidthEnd = 1
+	SWEP.SpellSlot[1].TrailTexture = "trails/laser.vmt"
+	SWEP.SpellSlot[1].Effect = "sentry_rocket_fire"
+	SWEP.SpellSlot[1].TravelDamage = false
+	SWEP.SpellSlot[1].FranticEffect = false
+	SWEP.SpellSlot[1].ExplosionEffect = true
+
+	-- WD Top Right Offensive
+	SWEP.SpellSlot[2].BaseCost = 7.4
+	SWEP.SpellSlot[2].Method = "target"
+	SWEP.SpellSlot[2].DamageType = "frost"
+	SWEP.SpellSlot[2].Damage = 5
+	SWEP.SpellSlot[2].Duration = 10
+	SWEP.SpellSlot[2].Radius = 5
+	SWEP.SpellSlot[2].CollisionRadius = 5
+	SWEP.SpellSlot[2].VelMul = 0.5
+	SWEP.SpellSlot[2].LoopSound = "fx/spl/spl_frost_travel_lp.wav"
+	SWEP.SpellSlot[2].RColor = 0
+	SWEP.SpellSlot[2].GColor = 255
+	SWEP.SpellSlot[2].BColor = 255
+	SWEP.SpellSlot[2].AColor = 255
+	SWEP.SpellSlot[2].TrailLength = 0.5
+	SWEP.SpellSlot[2].TrailWidthStart = 100
+	SWEP.SpellSlot[2].TrailWidthEnd = 0
+	SWEP.SpellSlot[2].TrailTexture = "trails/laser.vmt"
+	SWEP.SpellSlot[2].Effect = "critical_rocket_blue"
+	SWEP.SpellSlot[2].TravelDamage = true
+	SWEP.SpellSlot[2].FranticEffect = false
+	SWEP.SpellSlot[2].ExplosionEffect = false
+
+	-- D Right Blink
+	SWEP.SpellSlot[3].BaseCost = 4.3
+	SWEP.SpellSlot[3].Method = "target"
+	SWEP.SpellSlot[3].DamageType = "unlock"
+	SWEP.SpellSlot[3].Damage = 100
+	SWEP.SpellSlot[3].Duration = 1
+	SWEP.SpellSlot[3].Radius = 1
+	SWEP.SpellSlot[3].CollisionRadius = 1
+	SWEP.SpellSlot[3].VelMul = 1
+	SWEP.SpellSlot[3].LoopSound = "fx/spl/spl_alteration_travel_lp.wav"
+	SWEP.SpellSlot[3].RColor = 255
+	SWEP.SpellSlot[3].GColor = 255
+	SWEP.SpellSlot[3].BColor = 0
+	SWEP.SpellSlot[3].AColor = 255
+	SWEP.SpellSlot[3].TrailLength = 0.1
+	SWEP.SpellSlot[3].TrailWidthStart = 10
+	SWEP.SpellSlot[3].TrailWidthEnd = 1
+	SWEP.SpellSlot[3].TrailTexture = "trails/laser.vmt"
+	SWEP.SpellSlot[3].Effect = "community_sparkle"
+	SWEP.SpellSlot[3].TravelDamage = false
+	SWEP.SpellSlot[3].FranticEffect = false
+	SWEP.SpellSlot[3].ExplosionEffect = true
+
+	-- SD Bottom Right Defensive
+	SWEP.SpellSlot[4].BaseCost = 16/100
+	SWEP.SpellSlot[4].Method = "self"
+	SWEP.SpellSlot[4].DamageType = "conjure"
+	SWEP.SpellSlot[4].Damage = 100
+	SWEP.SpellSlot[4].Duration = 30
+	SWEP.SpellSlot[4].Radius = 1
+	SWEP.SpellSlot[4].CollisionRadius = nil
+	SWEP.SpellSlot[4].VelMul = nil
+	SWEP.SpellSlot[4].LoopSound = nil
+	SWEP.SpellSlot[4].RColor = nil
+	SWEP.SpellSlot[4].GColor = nil
+	SWEP.SpellSlot[4].BColor = nil
+	SWEP.SpellSlot[4].AColor = nil
+	SWEP.SpellSlot[4].TrailLength = nil
+	SWEP.SpellSlot[4].TrailWidthStart = nil
+	SWEP.SpellSlot[4].TrailWidthEnd = nil
+	SWEP.SpellSlot[4].TrailTexture = nil
+	SWEP.SpellSlot[4].Effect = nil
+	SWEP.SpellSlot[4].TravelDamage = nil
+	SWEP.SpellSlot[4].FranticEffect = nil
+	SWEP.SpellSlot[4].ExplosionEffect = nil
+
+	-- S Bottom Heal
+	SWEP.SpellSlot[5].BaseCost = 100
+	SWEP.SpellSlot[5].Method = "self"
+	SWEP.SpellSlot[5].DamageType = "heal"
+	SWEP.SpellSlot[5].Damage = 5
+	SWEP.SpellSlot[5].Duration = 5
+	SWEP.SpellSlot[5].Radius = 1
+	SWEP.SpellSlot[5].CollisionRadius = nil
+	SWEP.SpellSlot[5].VelMul = nil
+	SWEP.SpellSlot[5].LoopSound = nil
+	SWEP.SpellSlot[5].RColor = nil
+	SWEP.SpellSlot[5].GColor = nil
+	SWEP.SpellSlot[5].BColor = nil
+	SWEP.SpellSlot[5].AColor = nil
+	SWEP.SpellSlot[5].TrailLength = nil
+	SWEP.SpellSlot[5].TrailWidthStart = nil
+	SWEP.SpellSlot[5].TrailWidthEnd = nil
+	SWEP.SpellSlot[5].TrailTexture = nil
+	SWEP.SpellSlot[5].Effect = nil
+	SWEP.SpellSlot[5].TravelDamage = nil
+	SWEP.SpellSlot[5].FranticEffect = nil
+	SWEP.SpellSlot[5].ExplosionEffect = nil
+
+	-- SA Bottom Left Defensive
+	SWEP.SpellSlot[6].BaseCost = 0.45
+	SWEP.SpellSlot[6].Method = "self"
+	SWEP.SpellSlot[6].DamageType = "armor"
+	SWEP.SpellSlot[6].Damage = 100
+	SWEP.SpellSlot[6].Duration = 15
+	SWEP.SpellSlot[6].Radius = 1
+	SWEP.SpellSlot[6].CollisionRadius = nil
+	SWEP.SpellSlot[6].VelMul = nil
+	SWEP.SpellSlot[6].LoopSound = nil
+	SWEP.SpellSlot[6].RColor = nil
+	SWEP.SpellSlot[6].GColor = nil
+	SWEP.SpellSlot[6].BColor = nil
+	SWEP.SpellSlot[6].AColor = nil
+	SWEP.SpellSlot[6].TrailLength = nil
+	SWEP.SpellSlot[6].TrailWidthStart = nil
+	SWEP.SpellSlot[6].TrailWidthEnd = nil
+	SWEP.SpellSlot[6].TrailTexture = nil
+	SWEP.SpellSlot[6].Effect = nil
+	SWEP.SpellSlot[6].TravelDamage = nil
+	SWEP.SpellSlot[6].FranticEffect = nil
+	SWEP.SpellSlot[6].ExplosionEffect = nil
+
+	-- A Left Dash
+	SWEP.SpellSlot[7].BaseCost = 12
+	SWEP.SpellSlot[7].Method = "target"
+	SWEP.SpellSlot[7].DamageType = "pure"
+	SWEP.SpellSlot[7].Damage = 100
+	SWEP.SpellSlot[7].Duration = 1
+	SWEP.SpellSlot[7].Radius = 1
+	SWEP.SpellSlot[7].CollisionRadius = 5
+	SWEP.SpellSlot[7].VelMul = 0.75
+	SWEP.SpellSlot[7].LoopSound = "fx/spl/spl_destruction_travel_lp.wav"
+	SWEP.SpellSlot[7].RColor = 255
+	SWEP.SpellSlot[7].GColor = 255
+	SWEP.SpellSlot[7].BColor = 255
+	SWEP.SpellSlot[7].AColor = 255
+	SWEP.SpellSlot[7].TrailLength = 0.5
+	SWEP.SpellSlot[7].TrailWidthStart = 32
+	SWEP.SpellSlot[7].TrailWidthEnd = 1
+	SWEP.SpellSlot[7].TrailTexture = "trails/laser.vmt"
+	SWEP.SpellSlot[7].Effect = "critical_rocket_red"
+	SWEP.SpellSlot[7].TravelDamage = false
+	SWEP.SpellSlot[7].FranticEffect = false
+	SWEP.SpellSlot[7].ExplosionEffect = true
+	
+	-- WA Top Left Offensive
+	SWEP.SpellSlot[8].BaseCost = 7.8
+	SWEP.SpellSlot[8].Method = "target"
+	SWEP.SpellSlot[8].DamageType = "shock"
+	SWEP.SpellSlot[8].Damage = 50
+	SWEP.SpellSlot[8].Duration = 3
+	SWEP.SpellSlot[8].Radius = 1
+	SWEP.SpellSlot[8].CollisionRadius = 1
+	SWEP.SpellSlot[8].VelMul = 2
+	SWEP.SpellSlot[8].LoopSound = "fx/spl/spl_shock_travel_lp.wav"
+	SWEP.SpellSlot[8].RColor = 255
+	SWEP.SpellSlot[8].GColor = 255
+	SWEP.SpellSlot[8].BColor = 255
+	SWEP.SpellSlot[8].AColor = 255
+	SWEP.SpellSlot[8].TrailLength = 1
+	SWEP.SpellSlot[8].TrailWidthStart = 5
+	SWEP.SpellSlot[8].TrailWidthEnd = 5
+	SWEP.SpellSlot[8].TrailTexture = "trails/electric.vmt"
+	SWEP.SpellSlot[8].Effect = "critical_rocket_blue"
+	SWEP.SpellSlot[8].TravelDamage = false
+	SWEP.SpellSlot[8].FranticEffect = true
+	SWEP.SpellSlot[8].ExplosionEffect = true
+
+
+
 
 
 

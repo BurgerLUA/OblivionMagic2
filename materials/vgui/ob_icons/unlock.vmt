@@ -1,6 +1,6 @@
 "UnlitGeneric"
 {
-	"$basetexture" "ob_icons/killicon"
+	"$basetexture" "vgui/ob_icons/unlock"
 	"$translucent" "1"
 	"$ignorez" "1"
 	
