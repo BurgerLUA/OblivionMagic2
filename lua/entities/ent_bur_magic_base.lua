@@ -102,21 +102,29 @@ function ENT:PhysicsCollide(data, physobj)
 		self.LoopSoundFinal:Stop()
 		self.FakeDieTime = CurTime() + 1
 		
-		if self.DamageType == "fire" then
-			self:EmitSound("fx/spl/spl_fireball_hit.wav")
-			self:ApplyDamage(data.HitEntity)
-		elseif self.DamageType == "frost" then
-			self:EmitSound("fx/spl/spl_frost_hit.wav")
-			self:ApplyDamage(data.HitEntity)
-		elseif self.DamageType == "shock" then
-			self:EmitSound("fx/spl/spl_shock_hit.wav")
-			self:ApplyDamage(data.HitEntity)
-		elseif self.DamageType == "unlock" then
-			self:EmitSound("fx/spl/spl_alteration_hit.wav")
+		if self.DamageType == "unlock" then
 			self:Unlock(data.HitEntity)
 		else
+			self:ApplyDamage(nil)
+		end
+		
+		
+		
+		if self.DamageType == "fire" then
+			self:EmitSound("fx/spl/spl_fireball_hit.wav")
+			--self:ApplyDamage(data.HitEntity)
+		elseif self.DamageType == "frost" then
+			self:EmitSound("fx/spl/spl_frost_hit.wav")
+			--self:ApplyDamage(data.HitEntity)
+		elseif self.DamageType == "shock" then
+			self:EmitSound("fx/spl/spl_shock_hit.wav")
+			--self:ApplyDamage(data.HitEntity)
+		elseif self.DamageType == "unlock" then
+			self:EmitSound("fx/spl/spl_alteration_hit.wav")
+			--self:Unlock(data.HitEntity)
+		else
 			self:EmitSound("fx/spl/spl_destruction_hit.wav")
-			self:ApplyDamage(data.HitEntity)
+			--self:ApplyDamage(data.HitEntity)
 		end
 
 		if self.ExplosionEffect == true then
@@ -264,7 +272,7 @@ function ENT:Draw()
 			self.ExplosionMul = 1
 		elseif self.DamageType == "pure" then
 			self.SpriteColor = Color(255,255,255,255)
-			self.SpriteSize = 64
+			self.SpriteSize = 128
 			self.ExplosionMul = 5
 		elseif self.DamageType == "unlock" then
 			self.SpriteColor = Color(255,255,0,255)

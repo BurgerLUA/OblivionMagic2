@@ -253,23 +253,32 @@ function SWEP:DrawHUD()
 	surface.SetMaterial( Material("vgui/ob_crosshair/crosshair") )
 	surface.SetDrawColor(255,200,helper,1)
 	surface.DrawTexturedRectRotated(ScrW()/2,ScrH()/2,32 + 8,32 + 8,0)
-	
 
-	surface.SetMaterial( Material("vgui/ob_icons/"..Icon) )
-	surface.SetDrawColor(255,255,255,255)
-	surface.DrawTexturedRectRotated(BaseX,BaseY,Size,Size,0)
+	if not LocalPlayer().HasOblivionHUD then
 	
-	surface.SetFont( "Oblivion" )
-	surface.SetTextColor( 255, 255, 255, 255 )
-	surface.SetTextPos( BaseX + Size/2 + 5 , BaseY - Size/2 ) 
-	surface.DrawText( HelpText )
+		surface.SetMaterial( Material("vgui/ob_icons/"..Icon) )
+		surface.SetDrawColor(255,255,255,255)
+		surface.DrawTexturedRectRotated(BaseX,BaseY,Size,Size,0)
+		
+	end
 	
-	surface.SetFont( "Oblivion" )
-	surface.SetTextColor( 255, 255, 255, 255 )
-	surface.SetTextPos( BaseX + Size/2 + 5, BaseY ) 
-	surface.DrawText( HelpText2 )
+	
+	
 	
 	if LocalPlayer():KeyDown(IN_ATTACK2) then
+	
+	
+		surface.SetFont( "Oblivion" )
+		surface.SetTextColor( 255, 255, 255, 255 )
+		surface.SetTextPos( ScrW()*0.35 , ScrH()*0.5 ) 
+		surface.DrawText( HelpText )
+	
+		surface.SetFont( "Oblivion" )
+		surface.SetTextColor( 255, 255, 255, 255 )
+		surface.SetTextPos( ScrW()*0.35,  ScrH()*0.50 + 60 ) 
+		surface.DrawText( HelpText2 )
+	
+	
 	
 		surface.SetDrawColor( Color(255,255,255,255) )
 		surface.SetMaterial( WheelBackground )
